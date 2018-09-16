@@ -1,11 +1,9 @@
-<?php
-session_start();
-?>
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
 	<meta charset="UTF-8">
 	 <link rel="stylesheet" type="text/css" href="css/estilo.css">
+	 <title> Exercicio 9 - Danilo Lima </title>
 </head>
 
 <body>
