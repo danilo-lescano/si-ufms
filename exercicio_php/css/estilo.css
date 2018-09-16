@@ -1,0 +1,72 @@
+@CHARSET "UTF-8";
+body{
+    margin-top:100px;
+    text-align:center;
+}
+
+h2{
+    padding-top:20px;
+    text-transform: uppercase;
+}
+
+.corpo{
+    margin-top:30px;
+}
+.box {
+    background-color:#DCDCDC;
+    width:500px;
+    margin:auto;
+    height:250px;
+    border: 2px solid #B0C4DE;
+}
+
+.button {
+    background-color:#00008B;
+    border: none;
+    color: #FFF8DC;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+.enviar {
+    background-color:green;
+    border: none;
+    color: #FFF8DC;
+    padding: 5px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+form{
+    text-align: left;
+    margin-left:30%;
+    margin-bottom:20%;
+}
+
+/* lista de contatos */
+
+.contatos{
+    background-color:#DCDCDC;
+    width:500px;
+    margin:auto;
+    height:800px;
+    border: 2px solid #B0C4DE;
+}
+
+ul {
+    list-style: none;
+    margin-left:10px;
+}
+
+li{
+    background-color:#E6E6FA;
+    margin-right:30px;
+}
