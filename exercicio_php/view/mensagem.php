@@ -2,8 +2,8 @@
 <html lang="pt">
 <head>
 	<meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="css/estilo.css">
-    <title> Exercício 9 - Danilo Lima </title>
+    <link rel="stylesheet" type="text/css" href="resources/css/estilo.css">
+    <title> Exercício 9.b - Danilo Lima </title>
 </head>
 
 <body>

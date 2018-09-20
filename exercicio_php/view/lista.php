@@ -2,7 +2,8 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	 <link rel="stylesheet" type="text/css" href="css/estilo.css">
+    <link rel="stylesheet" type="text/css" href="view/resources/css/estilo.css">
+    <title> Exercício 9.b - Danilo Lima </title>
 </head>
 
 <body>
