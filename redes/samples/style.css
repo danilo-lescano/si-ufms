@@ -1,0 +1,9 @@
+body{
+	background-color: #111;
+}
+h1{
+	font-size:2cm;
+	text-align: center;
+	color: black;
+	text-shadow: 0 0 2mm red;
+}
