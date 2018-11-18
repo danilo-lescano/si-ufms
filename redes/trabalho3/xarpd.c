@@ -16,6 +16,21 @@
 
 #define PORTA 5050
 
+//ESTRUTURAS
+// Define a struct for ARP header
+typedef struct _arp_hdr arp_hdr;
+struct _arp_hdr {
+	uint16_t htype;			//hardware type
+	uint16_t ptype;			//protocol type
+	uint8_t hlen;			//hardware address length
+	uint8_t plen;			//protocol address length
+	uint16_t opcode;		//operation
+	uint8_t sender_mac[6];	//sender hardware address - SHA
+	uint8_t sender_ip[4];	//sender protocal addres - SPA
+	uint8_t target_mac[6];	//target hardware address -THA
+	uint8_t target_ip[4];	//target protocol address - TPA
+};
+
 /*void minhafuncao(int sig){
     printf("Aqui!\n");
     exit(1);

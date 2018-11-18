@@ -61,6 +61,15 @@ struct ip_hdr {
 /* */
 // Read RFC 826 to define the ARP struct
 struct arp_hdr{
+	uint16_t htype;			//hardware type
+	uint16_t ptype;			//protocol type
+	uint8_t hlen;			//hardware address length
+	uint8_t plen;			//protocol address length
+	uint16_t opcode;		//operation
+	uint8_t sender_mac[6];	//sender hardware address - SHA
+	uint8_t sender_ip[4];	//sender protocal addres - SPA
+	uint8_t target_mac[6];	//target hardware address -THA
+	uint8_t target_ip[4];	//target protocol address - TPA
 };      
 /* */
 //

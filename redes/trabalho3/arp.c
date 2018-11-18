@@ -33,15 +33,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // Define a struct for ARP header
 typedef struct _arp_hdr arp_hdr;
 struct _arp_hdr {
-	uint16_t htype;
-	uint16_t ptype;
-	uint8_t hlen;
-	uint8_t plen;
-	uint16_t opcode;
-	uint8_t sender_mac[6];
-	uint8_t sender_ip[4];
-	uint8_t target_mac[6];
-	uint8_t target_ip[4];
+	uint16_t htype;			//hardware type
+	uint16_t ptype;			//protocol type
+	uint8_t hlen;			//hardware address length
+	uint8_t plen;			//protocol address length
+	uint16_t opcode;		//operation
+	uint8_t sender_mac[6];	//sender hardware address - SHA
+	uint8_t sender_ip[4];	//sender protocal addres - SPA
+	uint8_t target_mac[6];	//target hardware address -THA
+	uint8_t target_ip[4];	//target protocol address - TPA
 };
 // Define some constants.
 #define ETH_HDRLEN 14 // Ethernet header length
@@ -71,7 +71,7 @@ int main (int argc, char **argv) {
 	src_ip = allocate_strmem (INET_ADDRSTRLEN);
 
 	// Interface to send packet through.
-	strcpy (interface, "eth0");
+	strcpy (interface, "enp0s3");
 
 	// Submit request for a socket descriptor to look up interface.
 	if ((sd = socket (AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
