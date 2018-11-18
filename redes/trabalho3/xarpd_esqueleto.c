@@ -11,20 +11,32 @@
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <pthread.h>
+
 /* */
+//fonte - http://ascii-table.com/ansi-escape-sequences.php
+#define KNRM  "\x1B[0m"     //printf("%snormal\n", KNRM);
+#define KBLK  "\x1B[30m"     //printf("%black\n", KBLK);
+#define KRED  "\x1B[31m"    //printf("%sred\n", KRED);
+#define KGRN  "\x1B[32m"    //printf("%sgreen\n", KGRN);
+#define KYEL  "\x1B[33m"    //printf("%syellow\n", KYEL);
+#define KBLU  "\x1B[34m"    //printf("%sblue\n", KBLU);
+#define KMAG  "\x1B[35m"    //printf("%smagenta\n", KMAG);
+#define KCYN  "\x1B[36m"    //printf("%scyan\n", KCYN);
+#define KWHT  "\x1B[37m"    //printf("%swhite\n", KWHT);
 /* */
-#define MAX_PACKET_SIZE 65536
-#define MIN_PACKET_SIZE 64
+#define MAX_PACKET_SIZE 65535
+#define MIN_PACKET_SIZE 20
 /* */
 #define MAX_IFACES	64
 #define MAX_IFNAME_LEN	22
 #define ETH_ADDR_LEN	6
 /* */
 struct iface {
-	int		sockfd;
-	int		ttl;
-	int		mtu;
-	char		ifname[MAX_IFNAME_LEN];
+	int				sockfd;
+	int				ttl;
+	int				mtu;
+	char			ifname[MAX_IFNAME_LEN];
 	unsigned char	mac_addr[6];
 	unsigned int	ip_addr;
 	unsigned int	rx_pkts;
@@ -61,20 +73,20 @@ struct ip_hdr {
 /* */
 // Read RFC 826 to define the ARP struct
 struct arp_hdr{
-	uint16_t htype;			//hardware type
-	uint16_t ptype;			//protocol type
-	uint8_t hlen;			//hardware address length
-	uint8_t plen;			//protocol address length
-	uint16_t opcode;		//operation
-	uint8_t sender_mac[6];	//sender hardware address - SHA
-	uint8_t sender_ip[4];	//sender protocal addres - SPA
-	uint8_t target_mac[6];	//target hardware address -THA
-	uint8_t target_ip[4];	//target protocol address - TPA
+	unsigned short	htype;	//hardware type
+	unsigned short	ptype;	//protocol type
+	unsigned char	hlen;	//hardware address length
+	unsigned char	plen;	//protocol address length
+	unsigned short	opcode;	//operation
+	unsigned char	sha[6];	//sender mac - sender hardware address
+	unsigned char	spa[4];	//sender ip - sender protocal address
+	unsigned char	tha[6];	//target mac - target hardware address
+	unsigned char	tpa[4];	//target_ip - target protocol address
 };      
 /* */
 //
 //
-struct iface	my_ifaces[MAX_IFACES];
+struct iface my_ifaces[MAX_IFACES];
 //
 // Print an Ethernet address
 void print_eth_address(char *s, unsigned char *eth_addr)
@@ -105,9 +117,8 @@ void get_iface_info(int sockfd, char *ifname, struct iface *ifn)
 	}
 }
 // Print the expected command line for the program
-void print_usage()
-{
-	printf("\nxarpd <interface> [<interfaces>]\n");
+void print_usage(){
+	printf("\n%sxarpd %s<interface> %s[%s<interface> %s...]\n", KBLU, KGRN, KNRM, KGRN, KNRM);
 	exit(1);
 }
 /* */
@@ -117,17 +128,21 @@ void doProcess(unsigned char* packet, int len) {
 		return;
 
 	struct ether_hdr* eth = (struct ether_hdr*) packet;
+	struct arp_hdr* arp;
 	
 	if(htons(0x0806) == eth->ether_type) {
 		// ARP
-		//...
+		arp = (struct arp_hdr *) (packet + 14);
+		printf("\nready\n");
+		
 	}
 	// Ignore if it is not an ARP packet
 }
 /* */
 // This function should be one thread for each interface.
-void read_iface(struct iface *ifn)
+void *read_iface(void *arg)
 {
+	struct iface *ifn = (struct iface*)arg;//(struct iface*) malloc(sizeof(struct Node));
 	socklen_t	saddr_len;
 	struct sockaddr	saddr;
 	unsigned char	*packet_buffer;
@@ -142,6 +157,7 @@ void read_iface(struct iface *ifn)
 	
 	while(1) {
 		n = recvfrom(ifn->sockfd, packet_buffer, MAX_PACKET_SIZE, 0, &saddr, &saddr_len);
+		printf("%s", packet_buffer);
 		if(n < 0) {
 			fprintf(stderr, "ERROR: %s\n", strerror(errno));
 			exit(1);
@@ -149,13 +165,17 @@ void read_iface(struct iface *ifn)
 		doProcess(packet_buffer, n);
 	}
 }
+
+//prototypes
+void daemonize ();
 /* */
 // main function
 int main(int argc, char** argv) {
-	int		i, sockfd;
+	int		i, sockfd, aux_thread;
+	pthread_t threads[MAX_IFACES];
 	
-	if (argc < 2)
-		print_usage();
+	if (argc < 2) print_usage();
+	daemonize ();
 
 	for (i = 1; i < argc; i++) {
 		sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));  
@@ -177,7 +197,21 @@ int main(int argc, char** argv) {
 		print_eth_address(my_ifaces[i].ifname, my_ifaces[i].mac_addr);
 		printf("\n");
 		// Create one thread for each interface. Each thread should run the function read_iface.
+		aux_thread = pthread_create(&threads[i], NULL, read_iface, &(my_ifaces[i]));
+			printf("thread %d created\n", i);
+		if (aux_thread){
+			printf("ERROR; return code from pthread_create() is %d\n", aux_thread);
+			exit(-1);
+		}
 	}
+	pthread_exit(NULL);
+			printf("awjkooooooooool\n");
 	return 0;
 }
-/* */
+
+
+//killall xarpd (para finalizar os deamons)
+void daemonize(){
+    if (fork() != 0) 
+	    exit(1);
+}
