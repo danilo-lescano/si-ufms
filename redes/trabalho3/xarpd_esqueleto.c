@@ -12,6 +12,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 /* */
 //fonte - http://ascii-table.com/ansi-escape-sequences.php
@@ -31,6 +32,8 @@
 #define MAX_IFACES	64
 #define MAX_IFNAME_LEN	22
 #define ETH_ADDR_LEN	6
+
+
 /* */
 struct iface {
 	int				sockfd;
@@ -83,11 +86,18 @@ struct arp_hdr{
 	unsigned char	tha[6];	//target mac - target hardware address
 	unsigned char	tpa[4];	//target_ip - target protocol address
 };      
-/* */
-//
-//
+
+
+
+//global var
+sem_t mutex;
 struct iface my_ifaces[MAX_IFACES];
-//
+
+
+//prototypes
+void daemonize ();
+void *handle_arp_cache();
+
 // Print an Ethernet address
 void print_eth_address(char *s, unsigned char *eth_addr)
 {
@@ -131,10 +141,13 @@ void doProcess(unsigned char* packet, int len) {
 	struct arp_hdr* arp;
 	
 	if(htons(0x0806) == eth->ether_type) {
-		// ARP
-		arp = (struct arp_hdr *) (packet + 14);
-		printf("\nready\n");
 		
+		// ARP
+		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
+		arp = (struct arp_hdr *) (packet + 14);
+		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
+		sem_wait(&mutex); 
+		sem_post(&mutex);
 	}
 	// Ignore if it is not an ARP packet
 }
@@ -142,7 +155,7 @@ void doProcess(unsigned char* packet, int len) {
 // This function should be one thread for each interface.
 void *read_iface(void *arg)
 {
-	struct iface *ifn = (struct iface*)arg;//(struct iface*) malloc(sizeof(struct Node));
+	struct iface *ifn = (struct iface*)arg;
 	socklen_t	saddr_len;
 	struct sockaddr	saddr;
 	unsigned char	*packet_buffer;
@@ -157,7 +170,6 @@ void *read_iface(void *arg)
 	
 	while(1) {
 		n = recvfrom(ifn->sockfd, packet_buffer, MAX_PACKET_SIZE, 0, &saddr, &saddr_len);
-		printf("%s", packet_buffer);
 		if(n < 0) {
 			fprintf(stderr, "ERROR: %s\n", strerror(errno));
 			exit(1);
@@ -166,13 +178,10 @@ void *read_iface(void *arg)
 	}
 }
 
-//prototypes
-void daemonize ();
-/* */
 // main function
 int main(int argc, char** argv) {
 	int		i, sockfd, aux_thread;
-	pthread_t threads[MAX_IFACES];
+	pthread_t threads[MAX_IFACES], cache_arp_thread;
 	
 	if (argc < 2) print_usage();
 	daemonize ();
@@ -200,12 +209,18 @@ int main(int argc, char** argv) {
 		aux_thread = pthread_create(&threads[i], NULL, read_iface, &(my_ifaces[i]));
 			printf("thread %d created\n", i);
 		if (aux_thread){
-			printf("ERROR; return code from pthread_create() is %d\n", aux_thread);
+			printf("thread erro num: %d\n", aux_thread);
 			exit(-1);
 		}
 	}
+
+	aux_thread = pthread_create(&cache_arp_thread, NULL, handle_arp_cache, NULL);
+	if (aux_thread){
+		printf("thread handle_arp_cache erro num: %d\n", aux_thread);
+		exit(-1);
+	}
+
 	pthread_exit(NULL);
-			printf("awjkooooooooool\n");
 	return 0;
 }
 
@@ -214,4 +229,13 @@ int main(int argc, char** argv) {
 void daemonize(){
     if (fork() != 0) 
 	    exit(1);
+}
+
+void *handle_arp_cache(){
+	while(1){
+		sem_wait(&mutex);
+		//dica de tabela arp: endereco ip | endereco mac | tempo de vida
+		sem_post(&mutex);
+		sleep(1);
+	}
 }
