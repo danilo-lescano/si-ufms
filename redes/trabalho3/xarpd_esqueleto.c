@@ -98,7 +98,7 @@ struct arp_hdr{
 //global var
 sem_t mutex;
 struct iface my_ifaces[MAX_IFACES];
-struct arp_node head_node;
+struct arp_node *head_node;
 
 //prototypes
 void daemonize ();
@@ -155,7 +155,7 @@ void doProcess(unsigned char* packet, int len) {
 		arp = (struct arp_hdr *) (packet + 14);
 		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
 		sem_wait(&mutex);
-		while(node != NULL && memcmp(node->sha, arp->sha, 48) == 0 && memcmp(node->spa, arp->spa, 32) == 0){
+		while(node != NULL && memcmp(node->sha, arp->sha, 48) != 0 && memcmp(node->spa, arp->spa, 32) != 0){
 			node = node->next;
 			node_pai = node_pai->next;
 		}
