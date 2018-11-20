@@ -153,13 +153,13 @@ void doProcess(unsigned char* packet, int len) {
 		// ARP
 		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
 		arp = (struct arp_hdr *) (packet + 14);
-		printf("%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
+		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
 		sem_wait(&mutex);
-		while(node && memcmp(node->sha, arp->sha, 48) == 0 && memcmp(node->spa, arp->spa, 32) == 0){
+		while(node != NULL && memcmp(node->sha, arp->sha, 48) == 0 && memcmp(node->spa, arp->spa, 32) == 0){
 			node = node->next;
 			node_pai = node_pai->next;
 		}
-		if(!node){
+		if(node == NULL){
 			node = malloc(sizeof (struct arp_node));
 			node_pai->next = node;
 			node->next = NULL;
@@ -229,7 +229,6 @@ int main(int argc, char** argv) {
 		printf("\n");
 		// Create one thread for each interface. Each thread should run the function read_iface.
 		aux_thread = pthread_create(&threads[i], NULL, read_iface, &(my_ifaces[i]));
-			printf("thread %d created\n", i);
 		if (aux_thread){
 			printf("thread erro num: %d\n", aux_thread);
 			exit(-1);
@@ -258,7 +257,7 @@ void *handle_arp_cache(){
 	struct arp_node *node_pai = &head_node;
 	while(1){
 		sem_wait(&mutex);
-		while(node){
+		while(node != NULL){
 			node->ttl--;
 			if(node->ttl){
 				node_pai->next = node->next;
