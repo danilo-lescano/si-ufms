@@ -33,6 +33,12 @@
 #define MAX_IFNAME_LEN	22
 #define ETH_ADDR_LEN	6
 
+struct arp_node{
+	int 			ttl;
+	unsigned char	sha[6];	//sender mac - sender hardware address
+	unsigned char	spa[4]; //sender ip - sender protocal address
+	struct arp_node *next;
+};
 
 /* */
 struct iface {
@@ -92,7 +98,7 @@ struct arp_hdr{
 //global var
 sem_t mutex;
 struct iface my_ifaces[MAX_IFACES];
-
+struct arp_node head_node;
 
 //prototypes
 void daemonize ();
@@ -139,15 +145,30 @@ void doProcess(unsigned char* packet, int len) {
 
 	struct ether_hdr* eth = (struct ether_hdr*) packet;
 	struct arp_hdr* arp;
+	struct arp_node *node = head_node.next;
+	struct arp_node *node_pai = &head_node;
 	
 	if(htons(0x0806) == eth->ether_type) {
 		
 		// ARP
 		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
 		arp = (struct arp_hdr *) (packet + 14);
-		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
-		sem_wait(&mutex); 
+		printf("%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
+		sem_wait(&mutex);
+		while(node && memcmp(node->sha, arp->sha, 48) == 0 && memcmp(node->spa, arp->spa, 32) == 0){
+			node = node->next;
+			node_pai = node_pai->next;
+		}
+		if(!node){
+			node = malloc(sizeof (struct arp_node));
+			node_pai->next = node;
+			node->next = NULL;
+			strncpy(node->sha, arp->sha, 48);
+			strncpy(node->spa, arp->spa, 32);
+		}
+		node->ttl = 60;
 		sem_post(&mutex);
+		printf("xxxxx%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
 	}
 	// Ignore if it is not an ARP packet
 }
@@ -185,6 +206,7 @@ int main(int argc, char** argv) {
 	
 	if (argc < 2) print_usage();
 	daemonize ();
+	head_node.next = NULL;
 
 	for (i = 1; i < argc; i++) {
 		sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));  
@@ -232,9 +254,22 @@ void daemonize(){
 }
 
 void *handle_arp_cache(){
+	struct arp_node *node = head_node.next;
+	struct arp_node *node_pai = &head_node;
 	while(1){
 		sem_wait(&mutex);
-		//dica de tabela arp: endereco ip | endereco mac | tempo de vida
+		while(node){
+			node->ttl--;
+			if(node->ttl){
+				node_pai->next = node->next;
+				free(node);
+				node = node_pai->next;
+			}
+			else{
+				node_pai = node_pai->next;
+				node = node->next;
+			}
+		}
 		sem_post(&mutex);
 		sleep(1);
 	}
