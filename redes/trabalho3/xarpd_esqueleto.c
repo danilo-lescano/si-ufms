@@ -98,7 +98,7 @@ struct arp_hdr{
 //global var
 sem_t mutex;
 struct iface my_ifaces[MAX_IFACES];
-struct arp_node *head_node;
+struct arp_node head_node;
 
 //prototypes
 void daemonize ();
@@ -146,7 +146,7 @@ void doProcess(unsigned char* packet, int len) {
 	struct ether_hdr* eth = (struct ether_hdr*) packet;
 	struct arp_hdr* arp;
 	struct arp_node *node;
-	struct arp_node *node_pai = NULL;
+	struct arp_node *node_pai;
 	
 	if(htons(0x0806) == eth->ether_type) {
 		
@@ -154,23 +154,23 @@ void doProcess(unsigned char* packet, int len) {
 		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
 		arp = (struct arp_hdr *) (packet + 14);
 		sem_wait(&mutex);
-		node = head_node;
+		node = head_node.next;
+		node_pai = &head_node;
 
 		while(node != NULL && memcmp(node->sha, arp->sha, 48) != 0 && memcmp(node->spa, arp->spa, 32) != 0){
-			if(node_pai == NULL)
-				node_pai = node;
-			else
-				node_pai = node_pai->next;
+			node_pai = node_pai->next;
 			node = node->next;
 		}
 		if(node == NULL){
-			node = (struct arp_node *) malloc(sizeof (struct arp_node));
+			node = (struct arp_node *) malloc(sizeof(struct arp_node));
+			printf("size before: %ld %ld\n", sizeof(node->sha), sizeof(node->spa));
 			node_pai->next = node;
 			node->next = NULL;
 			for(i = 0; i < 6; i++)
-				strncpy(&node->sha[i], &arp->sha[i], 6);
+				strncpy(&node->sha[i], &arp->sha[i], (int) sizeof(unsigned char));
 			//strncpy(node->sha, arp->sha, 48);
 			strncpy(node->spa, arp->spa, 32);
+			printf("size after: %ld %ld", sizeof(node->sha), sizeof(node->spa));
 		}
 		node->ttl = 5;
 
@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
 	
 	if (argc < 2) print_usage();
 	daemonize ();
-	head_node = NULL;
+	head_node.next = NULL;
 	sem_init(&mutex, 0, 1);
 
 	for (i = 1; i < argc; i++) {
@@ -276,8 +276,8 @@ void *handle_arp_cache(){
 	while(1){
 
 		sem_wait(&mutex);
-		node = head_node;
-		node_pai = NULL;
+		node = head_node.next;
+		node_pai = &head_node;
 		i = node == NULL;
 		//printf("node eh null: %d\n", i);
 
@@ -285,17 +285,14 @@ void *handle_arp_cache(){
 			printf("%d ttl\n", node->ttl);
 			node->ttl--;
 			if(node->ttl < 1){
-				if(node_pai != NULL)
-					node_pai->next = node->next;
+				node_pai->next = node->next;
 				free(node);
+				node = NULL;
 				if(node_pai != NULL)
 					node = node_pai->next;
 			}
 			else{
-				if(node_pai == NULL)
-					node_pai = node;
-				else
-					node_pai = node_pai->next;
+				node_pai = node_pai->next;
 				node = node->next;
 			}
 		}

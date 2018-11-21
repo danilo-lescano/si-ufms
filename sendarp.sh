@@ -2,3 +2,5 @@
 cd redes
 cd trabalho3
 ./arp
+./arp
+./arp
