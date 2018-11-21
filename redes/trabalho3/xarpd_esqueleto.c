@@ -142,33 +142,49 @@ void print_usage(){
 void doProcess(unsigned char* packet, int len) {
 	if(!len || len < MIN_PACKET_SIZE)
 		return;
-
+	int i;
 	struct ether_hdr* eth = (struct ether_hdr*) packet;
 	struct arp_hdr* arp;
-	struct arp_node *node = head_node.next;
-	struct arp_node *node_pai = &head_node;
+	struct arp_node *node;
+	struct arp_node *node_pai = NULL;
 	
 	if(htons(0x0806) == eth->ether_type) {
 		
 		// ARP
 		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
 		arp = (struct arp_hdr *) (packet + 14);
-		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
 		sem_wait(&mutex);
+		node = head_node;
+
 		while(node != NULL && memcmp(node->sha, arp->sha, 48) != 0 && memcmp(node->spa, arp->spa, 32) != 0){
+			if(node_pai == NULL)
+				node_pai = node;
+			else
+				node_pai = node_pai->next;
 			node = node->next;
-			node_pai = node_pai->next;
 		}
 		if(node == NULL){
-			node = malloc(sizeof (struct arp_node));
+			node = (struct arp_node *) malloc(sizeof (struct arp_node));
 			node_pai->next = node;
 			node->next = NULL;
-			strncpy(node->sha, arp->sha, 48);
+			for(i = 0; i < 6; i++)
+				strncpy(&node->sha[i], &arp->sha[i], 6);
+			//strncpy(node->sha, arp->sha, 48);
 			strncpy(node->spa, arp->spa, 32);
 		}
-		node->ttl = 60;
+		node->ttl = 5;
+
+		printf("\n%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
+		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
+		printf("%02X:%02X:%02X:%02X:%02X:%02X\n",
+	       node->sha[0], node->sha[1], node->sha[2],
+	       node->sha[3], node->sha[4], node->sha[5]);
+		printf("%02X:%02X:%02X:%02X:%02X:%02X\n",
+	       arp->sha[0], arp->sha[1], arp->sha[2],
+	       arp->sha[3], arp->sha[4], arp->sha[5]);
+		printf("%d\n", node->ttl);
 		sem_post(&mutex);
-		printf("xxxxx%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
+		
 	}
 	// Ignore if it is not an ARP packet
 }
@@ -206,7 +222,8 @@ int main(int argc, char** argv) {
 	
 	if (argc < 2) print_usage();
 	daemonize ();
-	head_node.next = NULL;
+	head_node = NULL;
+	sem_init(&mutex, 0, 1);
 
 	for (i = 1; i < argc; i++) {
 		sockfd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));  
@@ -246,26 +263,39 @@ int main(int argc, char** argv) {
 }
 
 
-//killall xarpd (para finalizar os deamons)
+// (para finalizar os deamons)
 void daemonize(){
     if (fork() != 0) 
 	    exit(1);
 }
 
 void *handle_arp_cache(){
-	struct arp_node *node = head_node.next;
-	struct arp_node *node_pai = &head_node;
+	struct arp_node *node;
+	struct arp_node *node_pai;
+	int i;
 	while(1){
+
 		sem_wait(&mutex);
+		node = head_node;
+		node_pai = NULL;
+		i = node == NULL;
+		//printf("node eh null: %d\n", i);
+
 		while(node != NULL){
+			printf("%d ttl\n", node->ttl);
 			node->ttl--;
-			if(node->ttl){
-				node_pai->next = node->next;
+			if(node->ttl < 1){
+				if(node_pai != NULL)
+					node_pai->next = node->next;
 				free(node);
-				node = node_pai->next;
+				if(node_pai != NULL)
+					node = node_pai->next;
 			}
 			else{
-				node_pai = node_pai->next;
+				if(node_pai == NULL)
+					node_pai = node;
+				else
+					node_pai = node_pai->next;
 				node = node->next;
 			}
 		}
