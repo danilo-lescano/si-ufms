@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-/* */
+/*Cores*/
 //fonte - http://ascii-table.com/ansi-escape-sequences.php
 #define KNRM  "\x1B[0m"     //printf("%snormal\n", KNRM);
 #define KBLK  "\x1B[30m"     //printf("%black\n", KBLK);
@@ -163,26 +163,14 @@ void doProcess(unsigned char* packet, int len) {
 		}
 		if(node == NULL){
 			node = (struct arp_node *) malloc(sizeof(struct arp_node));
-			printf("size before: %ld %ld\n", sizeof(node->sha), sizeof(node->spa));
 			node_pai->next = node;
 			node->next = NULL;
 			for(i = 0; i < 6; i++)
 				strncpy(&node->sha[i], &arp->sha[i], (int) sizeof(unsigned char));
-			//strncpy(node->sha, arp->sha, 48);
-			strncpy(node->spa, arp->spa, 32);
-			printf("size after: %ld %ld", sizeof(node->sha), sizeof(node->spa));
+			strncpy(node->spa, arp->spa, (int) sizeof(unsigned char) * 4);
 		}
-		node->ttl = 5;
+		node->ttl = 60;
 
-		printf("\n%d.%d.%d.%d\n", node->spa[0], node->spa[1], node->spa[2], node->spa[3]);
-		printf("%d.%d.%d.%d\n", arp->spa[0], arp->spa[1], arp->spa[2], arp->spa[3]);
-		printf("%02X:%02X:%02X:%02X:%02X:%02X\n",
-	       node->sha[0], node->sha[1], node->sha[2],
-	       node->sha[3], node->sha[4], node->sha[5]);
-		printf("%02X:%02X:%02X:%02X:%02X:%02X\n",
-	       arp->sha[0], arp->sha[1], arp->sha[2],
-	       arp->sha[3], arp->sha[4], arp->sha[5]);
-		printf("%d\n", node->ttl);
 		sem_post(&mutex);
 		
 	}
@@ -282,7 +270,6 @@ void *handle_arp_cache(){
 		//printf("node eh null: %d\n", i);
 
 		while(node != NULL){
-			printf("%d ttl\n", node->ttl);
 			node->ttl--;
 			if(node->ttl < 1){
 				node_pai->next = node->next;

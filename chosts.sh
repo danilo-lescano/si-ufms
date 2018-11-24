@@ -1,4 +1,5 @@
 #!/bin/bash
+#create hosts
 cd redes
 cd trabalho3
-./arp
+./create_hosts.sh

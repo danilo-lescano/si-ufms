@@ -1,4 +1,5 @@
 #!/bin/bash
+#destroy hosts
 cd redes
 cd trabalho3
-./arp
+./destroy_hosts.sh
