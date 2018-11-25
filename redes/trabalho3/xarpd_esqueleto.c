@@ -98,119 +98,32 @@ struct arp_hdr{
 //global var
 sem_t mutex;
 struct iface my_ifaces[MAX_IFACES];
-struct arp_node head_node;
+struct arp_node *head_node;
 
 //prototypes
 void daemonize ();
 void *handle_arp_cache();
+void print_eth_address(char *s, unsigned char *eth_addr);
+int	 bind_iface_name(int fd, char *iface_name);
+void get_iface_info(int sockfd, char *ifname, struct iface *ifn);
+void print_usage();
+void doProcess(unsigned char* packet, int len);
+void *read_iface(void *arg);
+//xarp functions
+void show();
+void res();
+void add();
+void del();
+void ttl();
 
-// Print an Ethernet address
-void print_eth_address(char *s, unsigned char *eth_addr)
-{
-	printf("%s %02X:%02X:%02X:%02X:%02X:%02X", s,
-	       eth_addr[0], eth_addr[1], eth_addr[2],
-	       eth_addr[3], eth_addr[4], eth_addr[5]);
-}
-/* */
-// Bind a socket to an interface
-int bind_iface_name(int fd, char *iface_name)
-{
-	return setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, iface_name, strlen(iface_name));
-}
-/* */
-void get_iface_info(int sockfd, char *ifname, struct iface *ifn)
-{
-	struct ifreq s;
-	
-	strcpy(s.ifr_name, ifname);
-	if (0 == ioctl(sockfd, SIOCGIFHWADDR, &s)) {
-		memcpy(ifn->mac_addr, s.ifr_addr.sa_data, ETH_ADDR_LEN);
-		ifn->sockfd = sockfd;
-		strcpy(ifn->ifname, ifname);
-	} else {
-		perror("Error getting MAC address");
-		exit(1);
-	}
-}
-// Print the expected command line for the program
-void print_usage(){
-	printf("\n%sxarpd %s<interface> %s[%s<interface> %s...]\n", KBLU, KGRN, KNRM, KGRN, KNRM);
-	exit(1);
-}
-/* */
-// Break this function to implement the ARP functionalities.
-void doProcess(unsigned char* packet, int len) {
-	if(!len || len < MIN_PACKET_SIZE)
-		return;
-	int i;
-	struct ether_hdr* eth = (struct ether_hdr*) packet;
-	struct arp_hdr* arp;
-	struct arp_node *node;
-	struct arp_node *node_pai;
-	
-	if(htons(0x0806) == eth->ether_type) {
-		
-		// ARP
-		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
-		arp = (struct arp_hdr *) (packet + 14);
-		sem_wait(&mutex);
-		node = head_node.next;
-		node_pai = &head_node;
-
-		while(node != NULL && memcmp(node->sha, arp->sha, 48) != 0 && memcmp(node->spa, arp->spa, 32) != 0){
-			node_pai = node_pai->next;
-			node = node->next;
-		}
-		if(node == NULL){
-			node = (struct arp_node *) malloc(sizeof(struct arp_node));
-			node_pai->next = node;
-			node->next = NULL;
-			for(i = 0; i < 6; i++)
-				strncpy(&node->sha[i], &arp->sha[i], (int) sizeof(unsigned char));
-			strncpy(node->spa, arp->spa, (int) sizeof(unsigned char) * 4);
-		}
-		node->ttl = 60;
-
-		sem_post(&mutex);
-		
-	}
-	// Ignore if it is not an ARP packet
-}
-/* */
-// This function should be one thread for each interface.
-void *read_iface(void *arg)
-{
-	struct iface *ifn = (struct iface*)arg;
-	socklen_t	saddr_len;
-	struct sockaddr	saddr;
-	unsigned char	*packet_buffer;
-	int		n;
-	
-	saddr_len = sizeof(saddr);	
-	packet_buffer = malloc(MAX_PACKET_SIZE);
-	if (!packet_buffer) {
-		printf("\nCould not allocate a packet buffer\n");		
-		exit(1);
-	}
-	
-	while(1) {
-		n = recvfrom(ifn->sockfd, packet_buffer, MAX_PACKET_SIZE, 0, &saddr, &saddr_len);
-		if(n < 0) {
-			fprintf(stderr, "ERROR: %s\n", strerror(errno));
-			exit(1);
-		}
-		doProcess(packet_buffer, n);
-	}
-}
-
-// main function
 int main(int argc, char** argv) {
 	int		i, sockfd, aux_thread;
 	pthread_t threads[MAX_IFACES], cache_arp_thread;
 	
 	if (argc < 2) print_usage();
-	daemonize ();
-	head_node.next = NULL;
+	daemonize();
+	head_node = (struct arp_node *) malloc(sizeof(struct arp_node));
+	head_node->next = NULL;
 	sem_init(&mutex, 0, 1);
 
 	for (i = 1; i < argc; i++) {
@@ -249,41 +162,151 @@ int main(int argc, char** argv) {
 	pthread_exit(NULL);
 	return 0;
 }
-
-
 // (para finalizar os deamons)
 void daemonize(){
     if (fork() != 0) 
 	    exit(1);
 }
-
 void *handle_arp_cache(){
 	struct arp_node *node;
 	struct arp_node *node_pai;
 	int i;
 	while(1){
-
 		sem_wait(&mutex);
-		node = head_node.next;
-		node_pai = &head_node;
-		i = node == NULL;
-		//printf("node eh null: %d\n", i);
+		node = head_node->next;
+		node_pai = head_node;
+		i = 0;
 
 		while(node != NULL){
+			i++;
 			node->ttl--;
-			if(node->ttl < 1){
+			if(node->ttl == 0){
 				node_pai->next = node->next;
 				free(node);
 				node = NULL;
 				if(node_pai != NULL)
 					node = node_pai->next;
 			}
-			else{
+			else if(node->ttl > 0){
 				node_pai = node_pai->next;
 				node = node->next;
 			}
+			else
+				node->ttl++;
 		}
+		if(i > 0)
+		printf("nodes: %d\n", i);
+
 		sem_post(&mutex);
 		sleep(1);
+	}
+}
+// Print an Ethernet address
+void print_eth_address(char *s, unsigned char *eth_addr){
+	printf("%s %02X:%02X:%02X:%02X:%02X:%02X", s,
+	       eth_addr[0], eth_addr[1], eth_addr[2],
+	       eth_addr[3], eth_addr[4], eth_addr[5]);
+}
+// Bind a socket to an interface
+int bind_iface_name(int fd, char *iface_name){
+	return setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, iface_name, strlen(iface_name));
+}
+void get_iface_info(int sockfd, char *ifname, struct iface *ifn){
+	struct ifreq s;
+	
+	strcpy(s.ifr_name, ifname);
+	if (0 == ioctl(sockfd, SIOCGIFHWADDR, &s)) {
+		memcpy(ifn->mac_addr, s.ifr_addr.sa_data, ETH_ADDR_LEN);
+		ifn->sockfd = sockfd;
+		strcpy(ifn->ifname, ifname);
+	} else {
+		perror("Error getting MAC address");
+		exit(1);
+	}
+}
+// Print the expected command line for the program
+void print_usage(){
+	printf("\n%sxarpd %s<interface> %s[%s<interface> %s...]\n", KBLU, KGRN, KNRM, KGRN, KNRM);
+	exit(1);
+}
+// Break this function to implement the ARP functionalities.
+void doProcess(unsigned char* packet, int len){
+	if(!len || len < MIN_PACKET_SIZE)
+		return;
+	int i;
+	struct ether_hdr* eth = (struct ether_hdr*) packet;
+	struct arp_hdr* arp;
+	struct arp_hdr *rec_arp;
+	struct arp_node *node;
+	struct arp_node *node_pai;
+	
+	if(htons(0x0806) == eth->ether_type) {
+		// ARP
+		//link https://www.tldp.org/LDP/nag/node78.html arp -a lista a tabela arp
+		arp = (struct arp_hdr *) (packet + 14);//+14 ignora header ethernet
+		sem_wait(&mutex);
+		node = head_node->next;
+		node_pai = head_node;
+
+		while(node != NULL && memcmp(node->sha, arp->sha, (int) sizeof(unsigned char) * 6) != 0 && memcmp(node->spa, arp->spa, (int) sizeof(unsigned char) * 4) != 0){
+			node_pai = node_pai->next;
+			node = node->next;
+		}
+		if(node == NULL){
+			node = (struct arp_node *) malloc(sizeof(struct arp_node));
+			node_pai->next = node;
+			node->next = NULL;
+			strncpy(node->sha, arp->sha, (int) sizeof(unsigned char) * 6);
+			strncpy(node->spa, arp->spa, (int) sizeof(unsigned char) * 4);
+		}
+		node->ttl = 10;
+
+
+		node = head_node->next;
+		while(node != NULL && memcmp(node->spa, arp->tpa, (int) sizeof(unsigned char) * 4) != 0)
+			node = node->next;
+		rec_arp = (struct arp_hdr *) malloc(sizeof (struct arp_hdr));
+		if(node == NULL){
+			rec_arp->htype;	//unsigned short
+			rec_arp->ptype;	//unsigned short
+			rec_arp->hlen;	//unsigned char
+			rec_arp->plen;	//unsigned char
+			rec_arp->opcode;	//unsigned short
+			rec_arp->sha[6];	//unsigned char
+			rec_arp->spa[4];	//unsigned char
+			rec_arp->tha[6];	//unsigned char
+			rec_arp->tpa[4];	//unsigned char
+		}
+		else{
+			
+		}
+
+
+		sem_post(&mutex);
+	}
+	// Ignore if it is not an ARP packet
+}
+// This function should be one thread for each interface.
+void *read_iface(void *arg){
+	struct iface *ifn = (struct iface*)arg;
+	socklen_t	saddr_len;
+	struct sockaddr	saddr;
+	unsigned char	*packet_buffer;
+	int		n;
+	
+	saddr_len = sizeof(saddr);	
+	packet_buffer = malloc(MAX_PACKET_SIZE);
+	if (!packet_buffer) {
+		printf("\nCould not allocate a packet buffer\n");		
+		exit(1);
+	}
+	
+	while(1) {
+		n = recvfrom(ifn->sockfd, packet_buffer, MAX_PACKET_SIZE, 0, &saddr, &saddr_len);
+		if(n < 0) {
+			fprintf(stderr, "ERROR: %s\n", strerror(errno));
+			exit(1);
+		}
+		doProcess(packet_buffer, n);
 	}
 }
