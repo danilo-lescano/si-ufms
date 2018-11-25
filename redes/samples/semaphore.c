@@ -5,7 +5,7 @@
 #include <semaphore.h> 
 #include <unistd.h> 
 
-sem_t mutex; 
+sem_t mutex;
 
 void* thread(void* arg) 
 { 

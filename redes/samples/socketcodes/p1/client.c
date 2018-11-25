@@ -43,14 +43,14 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "ERROR2: %s\n", strerror(errno));
 		exit(1);
 	}
-        
+
 	printf("Digite a mensagem: ");
 	memset(buffer, 0, sizeof(buffer));
 
 	do {
 		retvalue = fgets(buffer, sizeof(buffer), stdin);
 	} while(retvalue == NULL);
-  
+
 	//man send
 	if(send(sockfd, buffer, strlen(buffer), 0) < 0) {
 		fprintf(stderr, "ERROR3: %s\n", strerror(errno));

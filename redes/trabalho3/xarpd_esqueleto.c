@@ -110,6 +110,7 @@ void print_usage();
 void doProcess(unsigned char* packet, int len);
 void *read_iface(void *arg);
 //xarp functions
+void *answer_xarp();
 void show();
 void res();
 void add();
@@ -118,7 +119,7 @@ void ttl();
 
 int main(int argc, char** argv) {
 	int		i, sockfd, aux_thread;
-	pthread_t threads[MAX_IFACES], cache_arp_thread;
+	pthread_t threads[MAX_IFACES], cache_arp_thread, answer_xarp_thread;
 	
 	if (argc < 2) print_usage();
 	daemonize();
@@ -159,9 +160,18 @@ int main(int argc, char** argv) {
 		exit(-1);
 	}
 
+	aux_thread = pthread_create(&answer_xarp_thread, NULL, answer_xarp, NULL);
+	if (aux_thread){
+		printf("thread answer_xarp_thread erro num: %d\n", aux_thread);
+		exit(-1);
+	}
+
 	pthread_exit(NULL);
 	return 0;
 }
+
+
+
 // (para finalizar os deamons)
 void daemonize(){
     if (fork() != 0) 
@@ -248,6 +258,7 @@ void doProcess(unsigned char* packet, int len){
 		node = head_node->next;
 		node_pai = head_node;
 
+		//salvando na tabela
 		while(node != NULL && memcmp(node->sha, arp->sha, (int) sizeof(unsigned char) * 6) != 0 && memcmp(node->spa, arp->spa, (int) sizeof(unsigned char) * 4) != 0){
 			node_pai = node_pai->next;
 			node = node->next;
@@ -261,8 +272,7 @@ void doProcess(unsigned char* packet, int len){
 		}
 		node->ttl = 10;
 
-
-		node = head_node->next;
+		/*node = head_node->next;
 		while(node != NULL && memcmp(node->spa, arp->tpa, (int) sizeof(unsigned char) * 4) != 0)
 			node = node->next;
 		rec_arp = (struct arp_hdr *) malloc(sizeof (struct arp_hdr));
@@ -279,7 +289,7 @@ void doProcess(unsigned char* packet, int len){
 		}
 		else{
 			
-		}
+		}*/
 
 
 		sem_post(&mutex);
@@ -310,3 +320,18 @@ void *read_iface(void *arg){
 		doProcess(packet_buffer, n);
 	}
 }
+
+
+
+
+
+
+
+void *answer_xarp(){
+
+}
+void show();
+void res();
+void add();
+void del();
+void ttl();
