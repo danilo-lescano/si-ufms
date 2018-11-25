@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#define MAX_PACKET_SIZE 65535
+
 struct mensagem{
 	unsigned char	ip[4];
 	unsigned char	mac[6];
@@ -25,7 +27,7 @@ int main(int argc, char** argv) {
 	int sockfd;
 	int portno;
 	char* retvalue;
-	char buffer[256];
+	char buffer[MAX_PACKET_SIZE];
     char *val_aux;
     int val_aux_int;
 
@@ -33,7 +35,7 @@ int main(int argc, char** argv) {
     char *flag_type[5] = {"show", "res", "add", "del", "ttl"};
 
     char ip[] = "127.0.0.1";
-    char porta[] = "5050";
+    char porta[] = "5058";
 
 	struct sockaddr_in serv_addr;
 
@@ -117,11 +119,11 @@ int main(int argc, char** argv) {
     memcpy(buffer, &msg, sizeof(msg));
 
 	//man send
-	if(send(sockfd, buffer, strlen(buffer), 0) < 0) {
+	if(send(sockfd, buffer, strlen(buffer) - 128, 0) < 0) {
 		fprintf(stderr, "ERROR3: %s\n", strerror(errno));
 		exit(1);
 	}
-  
+
 	memset(buffer, 0, sizeof(buffer));
 	//man recv
 	if(recv(sockfd, buffer, sizeof(buffer), 0) < 0) {
@@ -132,6 +134,6 @@ int main(int argc, char** argv) {
 	printf("%s\n", buffer);
 
 	close(sockfd);
-	
+
 	return 0;
 }

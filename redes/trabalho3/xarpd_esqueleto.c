@@ -13,6 +13,7 @@
 #include <net/if.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <err.h>
 
 /*Cores*/
 //fonte - http://ascii-table.com/ansi-escape-sequences.php
@@ -40,6 +41,12 @@ struct arp_node{
 	struct arp_node *next;
 };
 
+struct mensagem{
+	unsigned char	ip[4];
+	unsigned char	mac[6];
+    int             ttl;
+    char            *comando;
+};
 /* */
 struct iface {
 	int				sockfd;
@@ -272,26 +279,6 @@ void doProcess(unsigned char* packet, int len){
 		}
 		node->ttl = 10;
 
-		/*node = head_node->next;
-		while(node != NULL && memcmp(node->spa, arp->tpa, (int) sizeof(unsigned char) * 4) != 0)
-			node = node->next;
-		rec_arp = (struct arp_hdr *) malloc(sizeof (struct arp_hdr));
-		if(node == NULL){
-			rec_arp->htype;	//unsigned short
-			rec_arp->ptype;	//unsigned short
-			rec_arp->hlen;	//unsigned char
-			rec_arp->plen;	//unsigned char
-			rec_arp->opcode;	//unsigned short
-			rec_arp->sha[6];	//unsigned char
-			rec_arp->spa[4];	//unsigned char
-			rec_arp->tha[6];	//unsigned char
-			rec_arp->tpa[4];	//unsigned char
-		}
-		else{
-			
-		}*/
-
-
 		sem_post(&mutex);
 	}
 	// Ignore if it is not an ARP packet
@@ -328,7 +315,68 @@ void *read_iface(void *arg){
 
 
 void *answer_xarp(){
+	int one = 1, client_fd, n;
+	struct sockaddr_in server_address, client_address;
+	socklen_t client_address_lenght = sizeof(client_address);
+	unsigned char *packet_buffer;
+	struct mensagem *msg;
 
+	packet_buffer = malloc(MAX_PACKET_SIZE);
+	if (!packet_buffer) {
+		printf("\nCould not allocate a packet buffer\n");		
+		exit(1);
+	}
+	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if(server_socket < 0)
+		err(1, "DESCRIPTION: Can't open socket\nERROR");
+
+	server_address.sin_family = AF_INET;
+	server_address.sin_addr.s_addr = INADDR_ANY;
+	server_address.sin_port = htons(atoi("5058"));
+
+	if (bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address)) == -1) {
+		close(server_socket);
+		err(1, "DESCRIPTION: Can't bind\nERROR");
+	}
+
+	if(listen(server_socket, 10) < 0) {
+		fprintf(stderr, "ERROR: %s\n", strerror(errno));
+		exit(1);
+	}
+	while (1) {
+		client_fd = accept(server_socket, (struct sockaddr *) &client_address, &client_address_lenght);
+		printf("got connection\n");
+
+		//n = recvfrom(server_socket, packet_buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *) &client_address, &client_address_lenght);
+		n = recv(server_socket, packet_buffer, sizeof(packet_buffer) - 128, 0);
+		if(n < 0) {
+			fprintf(stderr, "ERROR: %s\n", strerror(errno));
+			exit(1);
+		}
+
+
+		msg = (struct mensagem *) packet_buffer;
+		if(strcmp(msg->comando, "show"))
+			show();
+		else if(strcmp(msg->comando, "res"))
+			res();
+		else if(strcmp(msg->comando, "add"))
+			add();
+		else if(strcmp(msg->comando, "del"))
+			del();
+		else if(strcmp(msg->comando, "ttl"))
+			ttl();
+
+		if (client_fd == -1) {
+			perror("DESCRIPTION: Can't accept\nERROR");
+			continue;
+		}
+		if (send(client_fd, packet_buffer, sizeof(packet_buffer) - 1, 0) < 0){ /*-1:'\0'*/
+			perror("DESCRIPTION: Message was not sent\nERROR");
+			continue;
+		}
+		close(client_fd);
+	}
 }
 void show();
 void res();

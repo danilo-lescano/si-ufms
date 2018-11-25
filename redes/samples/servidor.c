@@ -40,17 +40,13 @@ int main(int argc, char** argv){
 	struct sockaddr_in server_address, client_address;
 	socklen_t client_address_lenght = sizeof(client_address);
 
-	if(argc != 2)
-		errx(1, "DESCRIPTION: Expect port number");
-
-
 	int server_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if(server_socket < 0)
 		err(1, "DESCRIPTION: Can't open socket\nERROR");
 
 	server_address.sin_family = AF_INET;
 	server_address.sin_addr.s_addr = INADDR_ANY;
-	server_address.sin_port = htons(atoi(argv[1]));
+	server_address.sin_port = htons(atoi("5050"));
 
 	if (bind(server_socket, (struct sockaddr *) &server_address, sizeof(server_address)) == -1) {
 		close(server_socket);
@@ -62,9 +58,9 @@ int main(int argc, char** argv){
 		client_fd = accept(server_socket, (struct sockaddr *) &client_address, &client_address_lenght);
 		printf("got connection\n");
 
-if(argc > 2){
-		fprintf(stdout, "%s\n", argv[2]);
-	}
+		if(argc > 2){
+			fprintf(stdout, "%s\n", argv[2]);
+		}
 
 		if (client_fd == -1) {
 			perror("DESCRIPTION: Can't accept\nERROR");
