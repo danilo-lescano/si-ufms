@@ -1,1 +1,9 @@
 *.pickle
+/web/WS/nbproject/private/
+/web/Ex14/nbproject/private/
+/web/Ex14/build/
+/web/Ex14/dist/
+/web/Ex14Consumidor/nbproject/private/
+/web/Ex14Consumidor/build/
+/web/Ex14Consumidor/dist/
+/web/PhpProject1/nbproject/private/
