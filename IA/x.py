@@ -40,4 +40,11 @@ class_weight = {
 }
 for key,val in class_weight.items():
     class_weight[key] = val/2321
-print(class_weight)
+
+
+import pickle
+pickle_in = open("y.pickle","rb")
+y = pickle.load(pickle_in)
+from keras.utils import np_utils
+y = np_utils.to_categorical(y, num_classes=None)
+print(y[0])
