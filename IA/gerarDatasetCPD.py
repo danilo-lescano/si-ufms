@@ -33,7 +33,7 @@ def create_training_data(img_size, gray_sacale):
 
     X = np.array(X).reshape(-1, img_size, img_size, gray_sacale)
 
-    aux = "_" + img_size
+    aux = "_" + str(img_size)
     if(gray_sacale == 1):
         aux += "_gray" 
     pickle_out = open("X" + aux + ".pickle","wb")

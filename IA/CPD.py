@@ -17,10 +17,10 @@ tensorboard = TensorBoard(log_dir='logs/{}'.format(NAME))
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
-pickle_in = open("X_75.pickle","rb")
+pickle_in = open("X_50.pickle","rb")
 X = pickle.load(pickle_in)
 
-pickle_in = open("y_75.pickle","rb")
+pickle_in = open("y_50.pickle","rb")
 y = pickle.load(pickle_in)
 y = np_utils.to_categorical(y, num_classes=38)
 
