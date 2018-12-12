@@ -22,7 +22,7 @@ X = pickle.load(pickle_in)
 
 pickle_in = open("y_gray.pickle","rb")
 y = pickle.load(pickle_in)
-#y = np_utils.to_categorical(y, num_classes=None)
+y = np_utils.to_categorical(y, num_classes=38)
 
 X = X/255.0
 
@@ -34,6 +34,10 @@ class_weight = {0: 0.11632916846186989, 1: 0.12063765618267988, 2: 0.05342524773
 model = Sequential()
 
 model.add(Conv2D(32, (3, 3), input_shape=X.shape[1:]))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(32, (3, 3)))
 model.add(Activation('relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -59,4 +63,4 @@ model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['acc
 # || para categorização binaria?
 #model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-model.fit(X, y, batch_size=32, epochs=5, validation_split=0.3, callbacks=[tensorboard])
+model.fit(X, y, batch_size=32, epochs=5, validation_split=0.3, class_weight=class_weight, callbacks=[tensorboard])
