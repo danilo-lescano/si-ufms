@@ -10,17 +10,17 @@ from keras.utils import np_utils
 import pickle
 import time
 
-NAME = "plantvillage-disease-{}".format(int(time.time()))
+NAME = "PD-3xConv(64)-75xImgSize-noDense-adam{}".format(int(time.time()))
 
 tensorboard = TensorBoard(log_dir='logs/{}'.format(NAME))
 
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
-pickle_in = open("X_50.pickle","rb")
+pickle_in = open("X_75.pickle","rb")
 X = pickle.load(pickle_in)
 
-pickle_in = open("y_50.pickle","rb")
+pickle_in = open("y_75.pickle","rb")
 y = pickle.load(pickle_in)
 y = np_utils.to_categorical(y, num_classes=38)
 
@@ -52,9 +52,9 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-model.add(Dense(128))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
+#model.add(Dense(128))
+#model.add(Activation('relu'))
+#model.add(Dropout(0.5))
 
 model.add(Dense(38))
 model.add(Activation('sigmoid')) # || model.add(Activation('softmax'))
@@ -62,11 +62,9 @@ model.add(Activation('sigmoid')) # || model.add(Activation('softmax'))
 
 
 
-#model.compile(loss = 'sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-# ||
 model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-# || para categorização binaria?
-#model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+# ||
+#model.compile(loss='categorical_crossentropy', optimizer='Adadelta', metrics=['accuracy'])
 
 model.fit(X, y, batch_size=32, epochs=20, validation_split=0.3, class_weight=class_weight, callbacks=[tensorboard])
 

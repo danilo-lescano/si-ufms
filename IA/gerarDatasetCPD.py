@@ -46,7 +46,6 @@ def create_training_data(img_size, gray_sacale):
 
 
 
-create_training_data(50, 1)
-create_training_data(50, 3)
-create_training_data(75, 1)
-create_training_data(75, 3)
+#create_training_data(50, 3)
+#create_training_data(75, 3)
+#create_training_data(100, 3)
