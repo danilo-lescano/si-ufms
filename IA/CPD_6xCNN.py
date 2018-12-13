@@ -10,17 +10,17 @@ from keras.utils import np_utils
 import pickle
 import time
 
-NAME = "PD-6xConv(128)-75xImgSize-noDense-adam-{}".format(int(time.time()))
+NAME = "PD-6xConv(128)-100xImgSize-noDense-adam-{}".format(int(time.time()))
 
 tensorboard = TensorBoard(log_dir='logs/{}'.format(NAME))
 
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
-pickle_in = open("X_75.pickle","rb")
+pickle_in = open("X_100.pickle","rb")
 X = pickle.load(pickle_in)
 
-pickle_in = open("y_75.pickle","rb")
+pickle_in = open("y_100.pickle","rb")
 y = pickle.load(pickle_in)
 y = np_utils.to_categorical(y, num_classes=38)
 
@@ -82,4 +82,4 @@ model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['acc
 
 model.fit(X, y, batch_size=32, epochs=20, validation_split=0.3, class_weight=class_weight, callbacks=[tensorboard])
 
-model.save('64x4-cnn-model')
+model.save('PD-6xConv(128)-100xImgSize-noDense-adam-model')
