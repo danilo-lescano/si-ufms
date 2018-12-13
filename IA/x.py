@@ -43,8 +43,6 @@ for key,val in class_weight.items():
 
 
 import pickle
-pickle_in = open("y.pickle","rb")
-y = pickle.load(pickle_in)
-from keras.utils import np_utils
-y = np_utils.to_categorical(y, num_classes=None)
-print(y[0])
+pickle_in = open("X_75.pickle","rb")
+X = pickle.load(pickle_in)
+print(X.shape[1:])

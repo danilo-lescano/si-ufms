@@ -10,7 +10,7 @@ from keras.utils import np_utils
 import pickle
 import time
 
-NAME = "PD-6xConv(128)-100xImgSize-noDense-adam-{}".format(int(time.time()))
+NAME = "PD-6xConv(128)-75xImgSize-noDense-adam-{}".format(int(time.time()))
 
 tensorboard = TensorBoard(log_dir='logs/{}'.format(NAME))
 
@@ -76,10 +76,10 @@ model.add(Activation('sigmoid')) # || model.add(Activation('softmax'))
 
 
 
-model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+#model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 # ||
-#model.compile(loss='categorical_crossentropy', optimizer='Adadelta', metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
 
 model.fit(X, y, batch_size=32, epochs=20, validation_split=0.3, class_weight=class_weight, callbacks=[tensorboard])
 
-model.save('PD-6xConv(128)-100xImgSize-noDense-adam-model')
+model.save('PD-6xConv(128)-75xImgSize-noDense-adam-model')
