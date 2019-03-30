@@ -3,5 +3,8 @@
         "pthread.h": "c",
         "err.h": "c",
         "semaphore.h": "c"
+    },
+    "files.exclude": {
+        "**/.class": true
     }
 }

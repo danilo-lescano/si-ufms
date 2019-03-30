@@ -13,11 +13,9 @@ class TCPServer {
 		
 		while(true) {
 			Socket connectionSocket = welcomeSocket.accept();
-
 			InetAddress b = connectionSocket.getInetAddress();
 			
 			System.out.println("Address: " + b.getHostAddress());
-			
 			
 			BufferedReader inFromClient  = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 			DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
@@ -37,7 +35,6 @@ class TCPServer {
 			    
 				outToClient.writeBytes(capitalizedSentence);
 			}
-
 			connectionSocket.close();
 		}
 	}

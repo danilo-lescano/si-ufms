@@ -10,12 +10,11 @@ public class ProxyHTTPServer{
         GetInetAddress(argv[0]);
 	}
 
-
 	private static InetAddress GetInetAddress(String hostname){
 		InetAddress a = null;
 		try { 
 			a = InetAddress.getByName(hostname);
-			System.out.println(hostname + ": " + a.getHostAddress()); 	
+			System.out.println(hostname + ": " + a.getHostAddress() + "\n" + a.getHostName()); 	
 		} catch (UnknownHostException e) {
 			System.out.println("No address found for " + hostname); 
 		}
