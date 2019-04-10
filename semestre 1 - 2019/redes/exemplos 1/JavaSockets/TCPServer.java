@@ -22,17 +22,12 @@ class TCPServer {
 
 			while (true) {
 				clientSentence = inFromClient.readLine();
-
 				if (clientSentence == null)
 					break;
-				
 				if (clientSentence.equals("exit"))
 					break;
-				
 				System.out.println(clientSentence);
-			
 				capitalizedSentence = clientSentence.toUpperCase() + '\n';
-			    
 				outToClient.writeBytes(capitalizedSentence);
 			}
 			connectionSocket.close();
