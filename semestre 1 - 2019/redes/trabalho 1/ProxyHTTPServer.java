@@ -36,7 +36,13 @@ public class ProxyHTTPServer{
 			}
 			connectionSocket.close();
 		}
-		
+		try { 
+				InetAddress a = InetAddress.getByName(hostname);
+				
+				System.out.println(hostname + ": " + a.getHostAddress()); 	
+			} catch (UnknownHostException e) {
+				System.out.println("No address found for " + hostname); 
+			}
         //GetInetAddress(argv[0]);
 	}
 
