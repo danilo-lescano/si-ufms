@@ -10,6 +10,8 @@ public class ProxyHTTPServer{
 		String capitalizedSentence;
 		ServerSocket welcomeSocket = new ServerSocket(Integer.parseInt(argv[0]));
 		InetAddress a = welcomeSocket.getInetAddress();
+
+		float tamanhoEmMB = Integer.parseInt(argv[1]);
 		//receber porta e tamanho
 		System.out.println(a.getHostAddress() + "\n" + a.getHostName()); 	
 		
@@ -36,13 +38,7 @@ public class ProxyHTTPServer{
 			}
 			connectionSocket.close();
 		}
-		try { 
-				InetAddress a = InetAddress.getByName(hostname);
-				
-				System.out.println(hostname + ": " + a.getHostAddress()); 	
-			} catch (UnknownHostException e) {
-				System.out.println("No address found for " + hostname); 
-			}
+
         //GetInetAddress(argv[0]);
 	}
 
