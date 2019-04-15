@@ -39,6 +39,7 @@ class WebServer {
 						outToClient.writeBytes(line);
 					}
 					outToClient.writeBytes("</body>\r\n");
+					connectionSocket.close();
 					return;
 				}
 				

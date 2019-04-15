@@ -29,6 +29,13 @@ public class ConnectionSocket extends Thread{
     }
     public void run(){
         try{
+    		String requestMessageLine;
+            requestMessageLine = inFromClient.readLine();
+
+		    StringTokenizer tokenizedLine = new StringTokenizer(requestMessageLine);
+
+		    if (tokenizedLine.nextToken().equals("GET"))
+            
             while (true) {
                 clientSentence = inFromClient.readLine();
                 if (clientSentence == null)
