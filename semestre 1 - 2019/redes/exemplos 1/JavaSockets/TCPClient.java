@@ -11,7 +11,7 @@ class TCPClient {
 		System.out.println(a.getHostAddress());
 
 		//Socket clientSocket = new Socket(a.getHostAddress(), 80);
-		Socket clientSocket = new Socket("localhost", 6789);
+		Socket clientSocket = new Socket("localhost", 8005);
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
 			

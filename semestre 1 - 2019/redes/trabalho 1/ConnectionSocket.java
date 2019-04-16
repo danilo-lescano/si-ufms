@@ -41,8 +41,7 @@ public class ConnectionSocket extends Thread{
 
                 tokenizedLine = new StringTokenizer(getHost);
     		    if(tokenizedLine.nextToken().equals("Host:"))
-                    //outToClient.writeBytes(xxx(getHeader, getHost, tokenizedLine.nextToken()));
-                    xxx(getHeader, getHost, tokenizedLine.nextToken());
+                    outToClient.writeBytes(xxx(getHeader, getHost, tokenizedLine.nextToken()));
             }
             connectionSocket.close();
         }
@@ -72,14 +71,10 @@ public class ConnectionSocket extends Thread{
 
             outToServer.writeBytes(stringRequest);
 
-            int aux;
-            while ((aux = inFromOutsideServer.read()) != -1) {
-                outToClient.writeShort(aux);
-            }
-            /*stringAwnser = "";
+            stringAwnser = "";
             while((stringRequest = inFromOutsideServer.readLine()) != null)
                 stringAwnser += stringRequest + "\r\n";
-            stringAwnser += "\r\n";*/
+            stringAwnser += "\r\n";
             clientSocket.close();
             return stringAwnser;
         }catch(Exception e) {
