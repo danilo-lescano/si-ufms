@@ -3,7 +3,7 @@ import java.net.*;
 import java.util.*;
 import java.lang.Thread;
 
-public class ConnectionSocket extends Thread{
+public class ServerSocket extends Thread{
     Socket connectionSocket;
     InetAddress b;
     String clientSentence;
@@ -11,7 +11,7 @@ public class ConnectionSocket extends Thread{
     BufferedReader inFromClient;
     DataOutputStream outToClient;
 
-    public ConnectionSocket(Socket connectionSocket){
+    public ServerSocket(Socket connectionSocket){
         try{
             this.connectionSocket = connectionSocket;
             b = connectionSocket.getInetAddress();
