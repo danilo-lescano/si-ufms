@@ -35,6 +35,9 @@ public class ProxyClientSocket{
             bos.flush();
 
             response = bos.toByteArray();
+            bos.close();
+            in.close();
+            out.close();
             clientSocket.close();
             return response;
         }catch(Exception e) {

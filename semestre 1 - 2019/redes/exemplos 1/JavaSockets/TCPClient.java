@@ -23,6 +23,9 @@ class TCPClient {
 		while((modifiedSentence = inFromServer.readLine()) != null){
 			System.out.println(modifiedSentence);
 		}
+		inFromUser.close();
+		inFromServer.close();
+		outToServer.close();
 		clientSocket.close();
 	} 
 }

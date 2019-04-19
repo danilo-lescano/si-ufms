@@ -39,6 +39,8 @@ public class ProxyServerSocket extends Thread{
                 ProxyClientSocket cs = new ProxyClientSocket(tokenizedLine.nextToken());
                 outToClient.write(cs.GET(header_bytes));
             }
+            inFromClient.close();
+            outToClient.close();
             connectionSocket.close();
         }
         catch(Exception e) {
