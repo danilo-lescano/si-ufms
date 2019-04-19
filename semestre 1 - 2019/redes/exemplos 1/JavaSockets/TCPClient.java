@@ -9,16 +9,14 @@ class TCPClient {
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		InetAddress a = InetAddress.getByName("pudim.com.br");
 
-		Socket clientSocket = new Socket(a.getHostAddress(), 80);
-		//Socket clientSocket = new Socket("localhost", 8005);
+		//Socket clientSocket = new Socket(a.getHostAddress(), 80);
+		Socket clientSocket = new Socket("localhost", 8005);
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
 			
 		sentence = "GET / HTTP/1.1\r\n";//inFromUser.readLine(); 
-		outToServer.writeBytes(sentence);
-		sentence = "Host: www.pudim.com.br\r\n";//inFromUser.readLine(); 
-		outToServer.writeBytes(sentence);
-		sentence = "\r\n";
+		sentence += "Host: www.pudim.com.br\r\n";//inFromUser.readLine(); 
+		sentence += "\r\n";
 		outToServer.writeBytes(sentence);
 		outToServer.flush();
 

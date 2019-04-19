@@ -3,49 +3,43 @@ import java.net.*;
 import java.util.*;
 
 public class ProxyClientSocket{
-    String header1, header2, host;
-    
-    public ProxyClientSocket(String header1, String header2, String host){
-        this.header1 = header1;
-        this.header2 = header2;
-        this.host = host;
-    }
+    Socket clientSocket;
+    InputStream in;
+    OutputStream out;
 
-    public String GET(BufferedReader inFromClient){
+    public ProxyClientSocket(String host){
         try{
             InetAddress address = InetAddress.getByName(host);
-            Socket clientSocket = new Socket(address.getHostAddress(), 80);
-            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-            BufferedReader inFromOutsideServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
-            String stringRequest = header1 + "\r\n" + header2 + "\r\n";
-            String stringAwnser;
+            clientSocket = new Socket(address.getHostAddress(), 80);
+        }catch(Exception e) {
+            System.out.println("unable to reach address");
+        }
+    }
 
-            String s = "\r\n";
-            while (inFromClient.ready()) {
-                stringAwnser = inFromClient.readLine();
-                stringRequest += stringAwnser + s;
-                if(stringAwnser.equals(""))
-                    s = "";
+    public byte[] GET(byte[] header_byte){
+        try{
+            byte[] response;
+            in = clientSocket.getInputStream();
+            out = clientSocket.getOutputStream();
+            out.write(header_byte);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            int next = in.read();
+            while (next > -1) {
+                System.out.print((char) next);
+                bos.write(next);
+                if(in.available() < 1)
+                    break;
+                next = in.read();
             }
-            stringRequest += "\r\n";
-            outToServer.writeBytes(stringRequest);
+            bos.flush();
 
-            stringAwnser = inFromOutsideServer.readLine();
-            s = "\r\n";
-            
-            while(inFromOutsideServer.ready()) {
-                stringRequest = inFromOutsideServer.readLine();
-                stringAwnser += stringRequest + s;
-                if(stringAwnser.equals(""))
-                    s = "";
-            }
-            System.out.println(stringAwnser);
-
+            response = bos.toByteArray();
             clientSocket.close();
-            return stringAwnser;
+            return response;
         }catch(Exception e) {
             System.out.println("fail");
-            return "fail";
+            return "fail".getBytes();
         }
-    }    
+    }
 }

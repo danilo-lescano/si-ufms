@@ -4,19 +4,15 @@ import java.util.*;
 import java.lang.Thread;
 
 public class ProxyServerSocket extends Thread{
-    Socket connectionSocket;
-    String clientSentence;
-    String capitalizedSentence;
     BufferedReader inFromClient;
-    DataOutputStream outToClient;
+    OutputStream outToClient;
+    Socket connectionSocket;
 
-    public ProxyServerSocket(Socket connectionSocket){
+    public ProxyServerSocket(Socket conSock){
         try{
-            this.connectionSocket = connectionSocket;
-
-            inFromClient  = new BufferedReader(new InputStreamReader(this.connectionSocket.getInputStream()));
-            outToClient = new DataOutputStream(this.connectionSocket.getOutputStream());
-
+            connectionSocket = conSock;
+            inFromClient  = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            outToClient = connectionSocket.getOutputStream();
             start();
         }
         catch(Exception e) {
@@ -25,19 +21,23 @@ public class ProxyServerSocket extends Thread{
     }
     public void run(){
         try{
-    		String getHeader = inFromClient.readLine();
-            String getHost;
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            int next = inFromClient.read();
+            while(next > -1) {
+                bos.write(next);
+                if(!inFromClient.ready())
+                    break;
+                next = inFromClient.read();
+            }
+            bos.flush();
 
-		    StringTokenizer tokenizedLine = new StringTokenizer(getHeader);
+            byte[] header_bytes = bos.toByteArray();
+            String getHost = (new String(header_bytes)).split("\\n")[1];
 
-		    if(tokenizedLine.nextToken().equals("GET")){
-                getHost = inFromClient.readLine();
-
-                tokenizedLine = new StringTokenizer(getHost);
-    		    if(tokenizedLine.nextToken().equals("Host:")){
-                    ProxyClientSocket cs = new ProxyClientSocket(getHeader, getHost, tokenizedLine.nextToken());
-                    outToClient.writeBytes(cs.GET(inFromClient));
-                }
+            StringTokenizer tokenizedLine = new StringTokenizer(getHost);
+            if(tokenizedLine.nextToken().equals("Host:")){
+                ProxyClientSocket cs = new ProxyClientSocket(tokenizedLine.nextToken());
+                outToClient.write(cs.GET(header_bytes));
             }
             connectionSocket.close();
         }

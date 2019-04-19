@@ -11,7 +11,7 @@ public class ProxyServerSocket2 extends Thread{
         InputStream in = s.getInputStream();
         OutputStream out = s.getOutputStream();
         String str = "GET /pudim.jpg HTTP/1.1\r\nHost: www.pudim.com.br\r\n\r\n";
-        byte buf[] = str.getBytes();
+        byte[] buf = str.getBytes();
         out.write(buf);
         while ((c = in.read()) != -1) {
             System.out.print((char) c);
