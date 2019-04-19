@@ -8,18 +8,19 @@ class TCPClient {
 
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		InetAddress a = InetAddress.getByName("pudim.com.br");
-		System.out.println(a.getHostAddress());
 
-		//Socket clientSocket = new Socket(a.getHostAddress(), 80);
-		Socket clientSocket = new Socket("localhost", 8005);
+		Socket clientSocket = new Socket(a.getHostAddress(), 80);
+		//Socket clientSocket = new Socket("localhost", 8005);
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); 
 			
-		sentence = "GET /estilo.css HTTP/1.1\r\n";//inFromUser.readLine(); 
-		sentence += "Host: www.pudim.com.br\r\n";//inFromUser.readLine(); 
-		sentence += "\r\n";
+		sentence = "GET / HTTP/1.1\r\n";//inFromUser.readLine(); 
 		outToServer.writeBytes(sentence);
-		
+		sentence = "Host: www.pudim.com.br\r\n";//inFromUser.readLine(); 
+		outToServer.writeBytes(sentence);
+		sentence = "\r\n";
+		outToServer.writeBytes(sentence);
+		outToServer.flush();
 
 		while((modifiedSentence = inFromServer.readLine()) != null){
 			System.out.println(modifiedSentence);

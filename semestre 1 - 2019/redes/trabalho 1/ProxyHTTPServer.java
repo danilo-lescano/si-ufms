@@ -7,18 +7,20 @@ public class ProxyHTTPServer{
 	public static void main(String argv[]) throws Exception{
 		if(argv.length != 2)
 			System.out.println("print usage");
-		float tamanhoEmMB = Integer.parseInt(argv[1]);
 		ServerSocket welcomeSocket = new ServerSocket(Integer.parseInt(argv[0]));
-		InetAddress a = welcomeSocket.getInetAddress();
+		float tamanhoEmMB = Integer.parseInt(argv[1]);
+		List<ProxyServerSocket> listSockets = new ArrayList<ProxyServerSocket>();
 
-		List<ConnectionSocket> listSockets = new ArrayList<ConnectionSocket>();
-
-		System.out.println(a.getHostAddress() + "\n" + a.getHostName()); 	
-		System.out.println("Address: " + a.getHostAddress());
+		WelcomeMessage(welcomeSocket);
 
 		while(true) {
-			ConnectionSocket connectionSocket = new ConnectionSocket(welcomeSocket.accept());
-			listSockets.add(connectionSocket);
+			ProxyServerSocket proxyServerSocket = new ProxyServerSocket(welcomeSocket.accept());
+			listSockets.add(proxyServerSocket);
 		}
+	}
+
+	private static void WelcomeMessage(ServerSocket welcomeSocket){
+		InetAddress a = welcomeSocket.getInetAddress();
+		System.out.println("Hello. Proxy listen on the following address " + a.getHostAddress());
 	}
 }

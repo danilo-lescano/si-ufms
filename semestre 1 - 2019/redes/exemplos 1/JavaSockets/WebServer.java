@@ -3,68 +3,47 @@ import java.net.*;
 import java.util.*;
 
 class WebServer {
-	public static void main(String argv[]) throws Exception {
-		String requestMessageLine;
-		String fileName;
-		ServerSocket listenSocket = new ServerSocket(6789);
-		Socket connectionSocket = listenSocket.accept();
-		BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-		DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-
-		requestMessageLine = inFromClient.readLine();
-
-		StringTokenizer tokenizedLine = new StringTokenizer(requestMessageLine);
-
-		if (tokenizedLine.nextToken().equals("GET")) {
-			fileName = tokenizedLine.nextToken();
-			if (fileName.startsWith("/") == true)
-				fileName = fileName.substring(1);
-			try {
-				File file = new File(fileName);
-				int numOfBytes = (int)file.length();
-
-				if (file.isDirectory()) {
-					String[] names = file.list();
-					outToClient.writeBytes("HTTP/1.0 200 Document Follows\r\n");
-					outToClient.writeBytes("Content-Type: text/html\r\n\r\n");
-					outToClient.writeBytes("<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\r\n" +
-										   "<head>\r\n" +
-										   "<title>Linux/kernel/ - Linux Cross Reference - Free Electrons</title>\r\n" +
-										   "</head>\r\n" +
-										   "<body>\r\n");
-
-					
-					for (int i = 0; i < names.length; i++) {
-						String line = String.format("<td><a href=\"%s\">%s</a></td>\n", names[i], names[i]);
-						outToClient.writeBytes(line);
-					}
-					outToClient.writeBytes("</body>\r\n");
-					outToClient.flush();
-					connectionSocket.close();
-					return;
-				}
-				
-				FileInputStream inFile = new FileInputStream(fileName);
-				byte[] fileInBytes = new byte[numOfBytes];
-
-				inFile.read(fileInBytes);
-				outToClient.writeBytes("HTTP/1.0 200 Document Follows\r\n");
-				if (fileName.endsWith(".jpg"))
-					outToClient.writeBytes("Content-Type: image/jpeg\r\n");
-				if (fileName.endsWith(".gif"))
-					outToClient.writeBytes("Content-Type: image/gif\r\n");
-				if (fileName.endsWith(".txt"))
-					outToClient.writeBytes("Content-Type: text/plain\r\n");
-				outToClient.writeBytes("Content-Length: " + numOfBytes + "\r\n");
-				outToClient.writeBytes("\r\n");
-				outToClient.write(fileInBytes, 0, numOfBytes);
-				connectionSocket.close();
-			}
-			catch (IOException e) {
-				outToClient.writeBytes("HTTP/1.1 404 File not found\r\n");
-			}
-		}
-		else
-			System.out.println("Bad Request Message");
-	}
+    public static void main(String[] args) throws Exception {
+        // création de la socket
+        int port = 8005;
+        ServerSocket serverSocket = new ServerSocket(port);
+        System.err.println("Serveur lance sur le port : " + port);
+    
+        // repeatedly wait for connections, and process
+        while (true) {
+            // on reste bloqué sur l'attente d'une demande client
+            Socket clientSocket = serverSocket.accept();
+            System.err.println("Nouveau client connecte");
+    
+            // on ouvre un flux de converation
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+    
+            // chaque fois qu'une donnée est lue sur le réseau on la renvoi sur
+            // le flux d'écriture.
+            // la donnée lue est donc retournée exactement au même client.
+            String s;
+            while (in.ready()) {
+                s = in.readLine();
+                System.out.println(s);
+            }
+    
+            out.write("HTTP/1.0 200 OK\r\n");
+            out.write("Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
+            out.write("Server: Apache/0.8.4\r\n");
+            out.write("Content-Type: text/html\r\n");
+            out.write("Content-Length: 57\r\n");
+            out.write("Expires: Sat, 01 Jan 2000 00:59:59 GMT\r\n");
+            out.write("Last-modified: Fri, 09 Aug 1996 14:21:40 GMT\r\n");
+            out.write("\r\n");
+            out.write("<TITLE>Exemple</TITLE>");
+            out.write("<P>Ceci est une page d'exemple.</P>");
+    
+            // on ferme les flux.
+            System.err.println("Connexion avec le client terminee");
+            out.close();
+            in.close();
+            clientSocket.close();
+        }
+    }
 }
