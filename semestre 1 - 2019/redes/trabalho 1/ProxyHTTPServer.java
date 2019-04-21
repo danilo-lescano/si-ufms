@@ -4,17 +4,30 @@ import java.util.*;
 import java.lang.Thread;
 
 public class ProxyHTTPServer{
-	public static void main(String argv[]) throws Exception{
-		if(argv.length != 2)
+	public static void main(String argv[]){
+		if(argv.length != 2){
 			System.out.println("print usage");
-		ServerSocket welcomeSocket = new ServerSocket(Integer.parseInt(argv[0]));
+			return;
+		}
+		ServerSocket welcomeSocket;
+        try{
+			welcomeSocket = new ServerSocket(Integer.parseInt(argv[0]));
+			WelcomeMessage(welcomeSocket);
+		}catch(Exception e) {
+			return;
+		}		
 		float tamanhoEmMB = Integer.parseInt(argv[1]);
 		List<ProxyServerSocket> listSockets = new ArrayList<ProxyServerSocket>();
 
-		WelcomeMessage(welcomeSocket);
 
 		while(true) {
-			ProxyServerSocket proxyServerSocket = new ProxyServerSocket(welcomeSocket.accept());
+			Socket conSock;
+			try{
+				conSock = welcomeSocket.accept();
+			}catch(Exception e) {
+				continue;
+			}
+			ProxyServerSocket proxyServerSocket = new ProxyServerSocket(conSock);
 			listSockets.add(proxyServerSocket);
 		}
 	}

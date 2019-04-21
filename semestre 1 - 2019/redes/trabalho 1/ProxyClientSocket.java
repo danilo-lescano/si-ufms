@@ -26,7 +26,7 @@ public class ProxyClientSocket{
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int next = in.read();
             while (next > -1) {
-                System.out.print((char) next);
+                //System.out.print((char) next);
                 bos.write(next);
                 if(in.available() < 1)
                     break;
