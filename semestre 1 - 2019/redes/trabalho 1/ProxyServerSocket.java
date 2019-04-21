@@ -23,11 +23,13 @@ public class ProxyServerSocket extends Thread{
     public void run(){
         byte[] header_bytes = getByteArray();
         if(hasHostToken(header_bytes)){
-            ProxyClientSocket cs = new ProxyClientSocket(getHostToken(header_bytes));
-            try{
-                out.write(cs.GET(header_bytes));
-            }catch(Exception e) {
-                System.out.println("ProxyServerSocket: error on write out byte array");
+            ProxyClientSocket cs = new ProxyClientSocket(getHostToken(header_bytes), getPort(header_bytes));
+            if(cs.ConectionStatus()){
+                try{
+                    out.write(cs.GET(header_bytes));
+                }catch(Exception e) {
+                    System.out.println("ProxyServerSocket: error on write out byte array");
+                }
             }
         }
         closeConnection();
@@ -45,7 +47,14 @@ public class ProxyServerSocket extends Thread{
     public String getHostToken(byte[] data){
         StringTokenizer tokenizedLine = new StringTokenizer((new String(data)).split("\\n")[1]);
         tokenizedLine.nextToken();
-        return tokenizedLine.nextToken();
+        String[] hostToken = tokenizedLine.nextToken().split(":");
+        return hostToken[0];
+    }
+    public int getPort(byte[] data){
+        StringTokenizer tokenizedLine = new StringTokenizer((new String(data)).split("\\n")[1]);
+        tokenizedLine.nextToken();
+        String[] hostToken = tokenizedLine.nextToken().split(":");
+        return hostToken.length == 2 ? Integer.parseInt(hostToken[1]) : 80;
     }
 
     public byte[] getByteArray(){
@@ -62,8 +71,9 @@ public class ProxyServerSocket extends Thread{
             }
             bos.flush();
             System.out.println(str);
-            
-            return bos.toByteArray();
+            byte[] data = bos.toByteArray();
+            bos.close();
+            return data;
         }catch(Exception e) {
             System.out.println("ProxyServerSocket: error on get byte array");
             return "".getBytes();

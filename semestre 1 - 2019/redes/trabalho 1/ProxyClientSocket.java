@@ -7,12 +7,15 @@ public class ProxyClientSocket{
     InputStream in;
     OutputStream out;
 
-    public ProxyClientSocket(String host){
+    boolean conStatus = false;
+
+    public ProxyClientSocket(String host, int port){
         try{
             InetAddress address = InetAddress.getByName(host);
-            clientSocket = new Socket(address.getHostAddress(), 80);
+            clientSocket = new Socket(address.getHostAddress(), port);
+            conStatus = true;
         }catch(Exception e) {
-            System.out.println("unable to reach address");
+            System.out.println("ProxyClientSocket: unable to reach address");
         }
     }
 
@@ -25,8 +28,10 @@ public class ProxyClientSocket{
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int next = in.read();
+            String str = "";
             while (next > -1) {
                 //System.out.print((char) next);
+                str += (char) next;
                 bos.write(next);
                 if(in.available() < 1)
                     break;
@@ -35,6 +40,7 @@ public class ProxyClientSocket{
             bos.flush();
 
             response = bos.toByteArray();
+            System.out.println(str);
             bos.close();
             in.close();
             out.close();
@@ -44,5 +50,9 @@ public class ProxyClientSocket{
             System.out.println("fail");
             return "fail".getBytes();
         }
+    }
+
+    public boolean ConectionStatus(){
+        return conStatus;
     }
 }
