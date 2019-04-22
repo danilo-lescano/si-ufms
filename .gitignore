@@ -1,4 +1,5 @@
 *.pickle
+*.class
 /web/WS/nbproject/private/
 /web/Ex14/nbproject/private/
 /web/Ex14/build/

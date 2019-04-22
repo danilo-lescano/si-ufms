@@ -5,6 +5,10 @@
         "semaphore.h": "c"
     },
     "files.exclude": {
-        "**/.class": true
+        "**/.class": true,
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
     }
 }

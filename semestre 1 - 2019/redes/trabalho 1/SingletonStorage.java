@@ -9,7 +9,7 @@ public class SingletonStorage extends Thread{
     private Map<String, byte[]> listContent;
     
     private SingletonStorage(){
-        sem = new Semaphore(1);
+        sem = new Semaphore(1, true);
         listContent = new HashMap<String, byte[]>();
     }
     
@@ -35,8 +35,8 @@ public class SingletonStorage extends Thread{
         return listContent.get(key);
     }
 
-    public boolean hasData(byte[] header_byte){
-        String key = getKey(header_byte);
+    public boolean hasData(byte[] data){
+        String key = getKey(data);
         
         if(key.equals("no key"))
             return false;
@@ -46,8 +46,8 @@ public class SingletonStorage extends Thread{
         return true;
     }
 
-    public String getKey(byte[] header_byte){
-        String[] headerStrs = (new String(header_byte)).split("\\n");
+    public String getKey(byte[] data){
+        String[] headerStrs = (new String(data)).split("\\n");
         StringTokenizer tokenizedLine;
 
         String key;

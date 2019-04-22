@@ -13,24 +13,39 @@ public class ProxyClientSocket{
         try{
             InetAddress address = InetAddress.getByName(host);
             clientSocket = new Socket(address.getHostAddress(), port);
-            conStatus = true;
         }catch(Exception e) {
             System.out.println("ProxyClientSocket: unable to reach address");
+            closeConnection();
+            return;
         }
-    }
-
-    public byte[] GET(byte[] header_byte){
         try{
-            byte[] response;
             in = clientSocket.getInputStream();
             out = clientSocket.getOutputStream();
-            out.write(header_byte);
+        }catch(Exception e) {
+            System.out.println("ProxyClientSocket: input output stream error");
+            closeConnection();
+            return;
+        }
+        conStatus = true;
+    }
 
+    public boolean writeByteArray(byte[] data){
+        try{
+            out.write(data);
+        }catch(Exception e) {
+            System.out.println("ProxyClientSocket: output error");
+            closeConnection();
+            return false;
+        }
+        return true;
+    }
+
+    public byte[] getByteArray(){
+        try{
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int next = in.read();
             String str = "";
-            while (next > -1) {
-                //System.out.print((char) next);
+            while(next > -1) {
                 str += (char) next;
                 bos.write(next);
                 if(in.available() < 1)
@@ -38,21 +53,40 @@ public class ProxyClientSocket{
                 next = in.read();
             }
             bos.flush();
-
-            response = bos.toByteArray();
-            System.out.println(str);
+            //System.out.println(str);
+            byte[] data = bos.toByteArray();
             bos.close();
-            in.close();
-            out.close();
-            clientSocket.close();
-            return response;
+            return data;
         }catch(Exception e) {
-            System.out.println("fail");
-            return "fail".getBytes();
+            System.out.println("ProxyClientSocket: error on get byte array");
+            closeConnection();
+            return "".getBytes();
         }
     }
 
     public boolean ConectionStatus(){
         return conStatus;
+    }
+
+    public void closeConnection(){
+        try{
+            if(in != null)
+                in.close();
+        }catch(Exception e) {
+            System.out.println("ProxyClientSocket: error on (in) close");
+        }
+        try{
+            if(out != null)
+                out.close();
+        }catch(Exception e) {
+            System.out.println("ProxyClientSocket: error on (out) close");
+        }
+        try{
+            if(clientSocket != null)
+                clientSocket.close();
+        }catch(Exception e) {
+            System.out.println("ProxyClientSocket: error on (sock) close");
+        }
+        conStatus = false;
     }
 }
