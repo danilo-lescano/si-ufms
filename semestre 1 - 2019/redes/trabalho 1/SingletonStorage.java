@@ -40,7 +40,7 @@ public class SingletonStorage extends Thread{
         
         if(key.equals("no key"))
             return false;
-        if(listContent.containsKey(key))
+        if(!listContent.containsKey(key))
             return false;
 
         return true;

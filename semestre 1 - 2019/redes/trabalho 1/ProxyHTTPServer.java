@@ -6,7 +6,7 @@ import java.lang.Thread;
 public class ProxyHTTPServer{
 	public static void main(String argv[]){
 		if(argv.length != 2){
-			System.out.println("print usage");
+			System.out.println("Usage: java ProxyHTTPServer port_number megabytes");
 			return;
 		}
 		ServerSocket welcomeSocket;

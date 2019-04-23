@@ -33,8 +33,14 @@ public class ProxyServerSocket extends Thread{
             sem.release();
             String key = ss.getKey(header_bytes);
             System.out.println(key);
+            byte[] data = ss.get(key);
+            try{
+                out.write(data);
+            }catch(Exception e) {
+                System.out.println("ProxyServerSocket: error on write out byte array1");
+            }
         }
-        if(hasHostToken(header_bytes)){
+        else if(hasHostToken(header_bytes)){
             sem.release();
             ProxyClientSocket cs = new ProxyClientSocket(getHostToken(header_bytes), getPort(header_bytes));
 
@@ -51,7 +57,7 @@ public class ProxyServerSocket extends Thread{
                         out.write(data);
                     }
                 }catch(Exception e) {
-                    System.out.println("ProxyServerSocket: error on write out byte array");
+                    System.out.println("ProxyServerSocket: error on write out byte array2");
                 }
             }
         }
