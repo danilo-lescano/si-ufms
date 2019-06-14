@@ -5,7 +5,7 @@
         "semaphore.h": "c"
     },
     "files.exclude": {
-        "**/*.class": true,
+        "**/*.class": false,
         "**/*.classpath": true,
         "**/*.project": true,
         "**/*.settings": true,
