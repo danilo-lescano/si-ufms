@@ -8,3 +8,8 @@
 /web/Ex14Consumidor/build/
 /web/Ex14Consumidor/dist/
 /web/PhpProject1/nbproject/private/
+
+
+.DS_Store
+.AppleDouble
+.LSOverride
