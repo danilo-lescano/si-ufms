@@ -38,7 +38,7 @@ public class TCPClient{
                 printUsageAndExit();
             }
         }
-        System.out.println("fn: " + fn + "\n" + "sip: " + sip + "\n" + "sport: " + sport + "\n" + "wnd: " + wnd + "\n" + "rto: " + rto + "\n" + "mss: " + mss + "\n" + "dupack: " + dupack + "\n" + "lp: " + lp);
+        //System.out.println("fn: " + fn + "\n" + "sip: " + sip + "\n" + "sport: " + sport + "\n" + "wnd: " + wnd + "\n" + "rto: " + rto + "\n" + "mss: " + mss + "\n" + "dupack: " + dupack + "\n" + "lp: " + lp);
     }
     private static void printUsageAndExit(){
         System.out.println("USAGE:\n\tjava TCPClient <fn> <sip> <sport> <wnd> <rto> <mss> <dupack> <lp>\n\tjava TCPClient -h | --help");
