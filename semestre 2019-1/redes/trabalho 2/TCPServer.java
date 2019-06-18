@@ -4,6 +4,8 @@ import java.util.*;
 import java.lang.Thread;
 
 public class TCPServer{
+    DatagramSocket serverSocket = new DatagramSocket(9876);
+
     private static String fn = "";
     private static int sport;
     private static int wnd;
