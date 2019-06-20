@@ -4,18 +4,26 @@ import java.util.*;
 import java.lang.Thread;
 
 public class TCPServer{
-    DatagramSocket serverSocket = new DatagramSocket(9876);
+    String fn = "";
+    int sport, wnd;
+    float lp;
+    DatagramSocket serverSocket;
+    byte[] receiveData = new byte[1024];
+    byte[] sendData = new byte[1024];
 
-    private static String fn = "";
-    private static int sport;
-    private static int wnd;
-    private static float lp;
-
-	public static void main(String argv[]){
-        CheckUsage(argv);
+	public static void main(String argv[]) throws Exception{
+        new TCPServer(argv);
     }
 
-    private static void CheckUsage(String argv[]){
+    TCPServer(String argv[]) throws Exception{
+        CheckUsage(argv);
+        serverSocket = new DatagramSocket(sport);
+        while(true){
+
+        }
+    }
+
+    void CheckUsage(String argv[]){
         if(argv.length > 0 && (argv[0].equals("-h") || argv[0].equals("--help"))){
             System.out.println("OPTIONS:\n\tfn: nome do arquivo a ser recebido e gravado em disco\n\tsport: porta UDP que o servidor deve escutar\n\twnd: tamanho da janela do transmissor e receptor em bytes\n\tlp: probabilidade de um datagrama UDP ser descartado (valor entre 0 e 1)");
             System.exit(0);
@@ -37,7 +45,7 @@ public class TCPServer{
         }
         //System.out.println("fn: " + fn + "\n" + "sport: " + sport + "\n" + "wnd: " + wnd + "\n" + "lp: " + lp + "\n");
     }
-    private static void printUsageAndExit(){
+    void printUsageAndExit(){
         System.out.println("USAGE:\n\tjava TCPServer <fn> <sport> <wnd> <lp>\n\tjava TCPServer -h | --help");
         System.exit(0);
     }
