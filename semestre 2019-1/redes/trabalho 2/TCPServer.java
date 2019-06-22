@@ -19,6 +19,8 @@ public class TCPServer{
         CheckUsage(argv);
         serverSocket = new DatagramSocket(sport);
         while(true){
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			serverSocket.receive(receivePacket);
 
         }
     }
