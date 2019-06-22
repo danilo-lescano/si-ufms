@@ -21,7 +21,7 @@ public class TCPServer{
         while(true){
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			serverSocket.receive(receivePacket);
-
+            TCPController.addPack(receiveData);
         }
     }
 
